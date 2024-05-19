@@ -64,6 +64,8 @@ public class Scraper
 
 				finishedTask = await Task.WhenAny(handlers);
 				await finishedTask;
+				List<Task> extraHandlers = (finishedTask as Task<List<Task>>).Result;
+				handlers.AddRange(extraHandlers);
 				handlers.Remove(finishedTask);
 			}
 			catch(Exception e)
@@ -80,7 +82,7 @@ public class Scraper
 		}
 	}
 
-	private async Task HandleRequest(HttpClient client, Request request)
+	private async Task<List<Task>> HandleRequest(HttpClient client, Request request)
 	{
 		string url = request.url;
 		if(!url.StartsWith("http"))
@@ -126,7 +128,7 @@ public class Scraper
 		if(!response.IsSuccessStatusCode)
 		{
 			request.errback(request.url, response);
-			return;
+			return new();
 		}
 
 		HandlerResult result = await request.callback(
@@ -137,11 +139,15 @@ public class Scraper
 		if(result.json != null)
 			await writer.Write(result.json);
 
+		List<Task> ret = new();
+
 		if(result.nextRequest != null)
 		{
 			foreach(Request rq in result.nextRequest)
-				await HandleRequest(client, rq);
+				ret.Add(HandleRequest(client, rq));
 		}
+
+		return ret;
 	}
 
 	public void Stop()
