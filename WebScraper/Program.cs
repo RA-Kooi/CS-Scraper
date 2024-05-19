@@ -37,10 +37,17 @@ async Task<HandlerResult> HandleRequest(
 }
 
 ProgressBar progress = new(0, "Downloading entries");
+bool first = true;
 
 Request GenRequests()
 {
-	return new("/", HandleRequest, cookies: cookies);
+	if(first)
+	{
+		first = false;
+		return new("/", HandleRequest, cookies: cookies);
+	}
+
+	return null;
 }
 
 try
