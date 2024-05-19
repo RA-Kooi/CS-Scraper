@@ -101,21 +101,25 @@ public class Scraper
 			message.Content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 		}
 
-		StringBuilder cookieBuilder = new();
-		var keys = request.cookies.Keys.GetEnumerator();
-		keys.MoveNext();
-		for(int i = 0; i < request.cookies.Count; ++i)
+		if(request.cookies != null && request.cookies.Keys.Count > 0)
 		{
-			string key = keys.Current;
-			bool shouldAddComma = i < (request.cookies.Count - 1);
-			string comma = shouldAddComma ? "; " : "";
-
-			cookieBuilder.Append($"{key}={request.cookies[key]}{comma}");
-
+			StringBuilder cookieBuilder = new();
+			var keys = request.cookies.Keys.GetEnumerator();
 			keys.MoveNext();
+			for (int i = 0; i < request.cookies.Count; ++i)
+			{
+				string key = keys.Current;
+				bool shouldAddComma = i < (request.cookies.Count - 1);
+				string comma = shouldAddComma ? "; " : "";
+
+				cookieBuilder.Append($"{key}={request.cookies[key]}{comma}");
+
+				keys.MoveNext();
+			}
+
+			message.Headers.Add("Cookie", cookieBuilder.ToString());
 		}
 
-		message.Headers.Add("Cookie", cookieBuilder.ToString());
 
 		HttpResponseMessage response = await client.SendAsync(message);
 
