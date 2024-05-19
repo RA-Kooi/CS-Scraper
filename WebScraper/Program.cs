@@ -24,6 +24,9 @@ Console.SetError(errorLog);
 
 Dictionary<string, string> cookies = new();
 
+if(!Directory.Exists("out"))
+	Directory.CreateDirectory("out");
+
 async Task<HandlerResult> HandleRequest(
 	string url,
 	HttpResponseMessage response,
