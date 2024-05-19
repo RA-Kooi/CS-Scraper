@@ -33,6 +33,16 @@ async Task<HandlerResult> HandleRequest(
 	Dictionary<string, object> state)
 {
 	Stream stream = await response.Content.ReadAsStreamAsync();
+
+	byte[] buffer = new byte[stream.Length];
+	int bytesRead = 0;
+	while(bytesRead < stream.Length)
+		bytesRead += await stream.ReadAsync(buffer, bytesRead, buffer.Length);
+
+	string content = Encoding.UTF8.GetString(buffer);
+
+	Console.WriteLine(content);
+
 	return new(null, null);
 }
 
