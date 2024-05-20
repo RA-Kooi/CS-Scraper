@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Utils;
 
-public class SplitWriter: TextWriter
+public class SplitWriter: TextWriter, IDisposable
 {
-	private TextWriter l, r;
+	private readonly TextWriter l, r;
 
 	private bool disposed;
 

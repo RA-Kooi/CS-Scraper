@@ -6,8 +6,8 @@ namespace Data;
 
 public class JSONWriter
 {
-	private SemaphoreSlim sem;
-	private StreamWriter writer;
+	private readonly SemaphoreSlim sem;
+	private readonly StreamWriter writer;
 
 	public JSONWriter(StreamWriter writer)
 	{

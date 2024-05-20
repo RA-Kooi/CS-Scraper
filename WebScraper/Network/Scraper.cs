@@ -12,8 +12,8 @@ using Data;
 
 public class Scraper
 {
-	private string baseUrl;
-	private JSONWriter writer;
+	private readonly string baseUrl;
+	private readonly JSONWriter writer;
 	private bool done;
 
 	public Scraper(string baseUrl, JSONWriter writer)
@@ -25,11 +25,11 @@ public class Scraper
 
 	public void Run(Func<Request> nextRequest)
 	{
-		HttpClientHandler clientHandler = new();
-		clientHandler.UseCookies = false;
+		HttpClientHandler clientHandler = new(){ UseCookies = false };
 
 		HttpClient client = new(new RetryHandler(clientHandler));
 		client.Timeout = TimeSpan.FromSeconds(10);
+
 		client.DefaultRequestHeaders.AcceptLanguage.Add(new("en-US"));
 		client.DefaultRequestHeaders.AcceptLanguage.Add(new("en"));
 		client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36");
