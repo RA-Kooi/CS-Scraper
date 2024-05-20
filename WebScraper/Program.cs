@@ -94,7 +94,7 @@ catch(AggregateException ae)
 					Exception current = e;
 					do
 					{
-						Console.Error.WriteLine(current.Message);
+						Console.Error.WriteLine($"{e.GetType().ToString()}: {current.Message}");
 						Console.Error.WriteLine("--------------------------------");
 						Console.Error.WriteLine(current.StackTrace);
 						Console.Error.WriteLine("--------------------------------");
