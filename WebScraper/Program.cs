@@ -17,7 +17,8 @@ using Data;
 using Networking;
 using Utils;
 
-TextWriter errLog = new StreamWriter(File.OpenWrite("error.log"), Encoding.UTF8);
+StreamWriter errLog = new(File.OpenWrite("error.log"), Encoding.UTF8);
+errLog.AutoFlush = true;
 TextWriter stderr = Console.Error;
 using SplitWriter errorLog = new(errLog, stderr);
 Console.SetError(errorLog);
