@@ -63,22 +63,20 @@ Request GenRequests()
 
 try
 {
-	using (StreamWriter writer = new("out/output.json", true))
+	using StreamWriter writer = new("out/output.json", true);
+	Scraper scraper = new("https://example.com", new(writer));
+
+	ConsoleCancelEventHandler stopDelegate = delegate (object sender, ConsoleCancelEventArgs e)
 	{
-		Scraper scraper = new("https://example.com", new(writer));
+		e.Cancel = true;
+		scraper.Stop();
+	};
 
-		ConsoleCancelEventHandler stopDelegate = delegate(object sender, ConsoleCancelEventArgs e)
-		{
-			e.Cancel = true;
-			scraper.Stop();
-		};
+	Console.CancelKeyPress += stopDelegate;
+	scraper.Run(GenRequests);
+	Console.CancelKeyPress -= stopDelegate;
 
-		Console.CancelKeyPress += stopDelegate;
-		scraper.Run(GenRequests);
-		Console.CancelKeyPress -= stopDelegate;
-
-		progress.Dispose();
-	}
+	progress.Dispose();
 }
 catch(AggregateException ae)
 {
