@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,6 +29,7 @@ public class Scraper
 		clientHandler.UseCookies = false;
 
 		HttpClient client = new(new RetryHandler(clientHandler));
+		client.Timeout = TimeSpan.FromSeconds(10);
 		client.DefaultRequestHeaders.AcceptLanguage.Add(new("en-US"));
 		client.DefaultRequestHeaders.AcceptLanguage.Add(new("en"));
 		client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36");
@@ -122,8 +124,33 @@ public class Scraper
 			message.Headers.Add("Cookie", cookieBuilder.ToString());
 		}
 
+		HttpResponseMessage response;
 
-		HttpResponseMessage response = await client.SendAsync(message);
+		while(true)
+		{
+			try
+			{
+				response = await client.SendAsync(message);
+				break;
+			}
+			catch(TaskCanceledException)
+			{
+				Console.Error.WriteLine($"Timeout... Retrying: {url}");
+				HttpRequestMessage msg = CloneHttpRequestMessage(message);
+				message = msg;
+			}
+			catch (HttpRequestException ex)
+			{
+				Console.Error.WriteLine(ex.Message);
+				if(ex.Message.Contains("Connection reset"))
+				{
+					Console.Error.WriteLine("Retrying request...");
+					continue;
+				}
+
+				throw;
+			}
+		}
 
 		if(!response.IsSuccessStatusCode)
 		{
@@ -153,5 +180,33 @@ public class Scraper
 	public void Stop()
 	{
 		done = true;
+	}
+
+	private static HttpRequestMessage CloneHttpRequestMessage(HttpRequestMessage req)
+	{
+		HttpRequestMessage clone = new HttpRequestMessage(req.Method, req.RequestUri);
+
+		// Copy the request's content (via a MemoryStream) into the cloned object
+		MemoryStream ms = new();
+		if (req.Content != null)
+		{
+			req.Content.CopyToAsync(ms).Wait();
+			ms.Position = 0;
+			clone.Content = new StreamContent(ms);
+
+			// Copy the content headers
+			foreach (var h in req.Content.Headers)
+				clone.Content.Headers.Add(h.Key, h.Value);
+		}
+
+		clone.Version = req.Version;
+
+		foreach (KeyValuePair<string, object> option in req.Options)
+			clone.Options.Set(new HttpRequestOptionsKey<object>(option.Key), option.Value);
+
+		foreach (KeyValuePair<string, IEnumerable<string>> header in req.Headers)
+			clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+
+		return clone;
 	}
 }
