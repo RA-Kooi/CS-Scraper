@@ -9,8 +9,6 @@ using System.Text.Json;
 using System.Text.Unicode;
 using System.Threading.Tasks;
 
-using Fizzler.Systems.HtmlAgilityPack;
-using HtmlAgilityPack;
 using ShellProgressBar;
 
 using Data;
@@ -23,7 +21,6 @@ TextWriter stderr = Console.Error;
 using SplitWriter errorLog = new(errLog, stderr);
 Console.SetError(errorLog);
 
-Dictionary<string, string> cookies = new();
 
 if(!Directory.Exists("out"))
 	Directory.CreateDirectory("out");
@@ -55,7 +52,7 @@ Request GenRequests()
 	if(first)
 	{
 		first = false;
-		return new("/", HandleRequest, cookies: cookies);
+		return new("/", HandleRequest);
 	}
 
 	return null;
