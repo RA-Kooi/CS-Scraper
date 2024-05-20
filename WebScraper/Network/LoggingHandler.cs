@@ -20,11 +20,16 @@ public class LoggingHandler : DelegatingHandler
 		Console.WriteLine(request.ToString());
 
 		if (request.Content != null)
-			Console.WriteLine(await request.Content.ReadAsStringAsync());
+		{
+			Console.WriteLine(
+				await request.Content.ReadAsStringAsync(cancellationToken));
+		}
 
 		Console.WriteLine();
 
-		HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
+		HttpResponseMessage response = await base.SendAsync(
+			request,
+			cancellationToken);
 
 		/*Console.WriteLine("Response:");
 		Console.WriteLine(response.ToString());

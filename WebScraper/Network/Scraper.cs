@@ -32,7 +32,10 @@ public class Scraper
 
 		client.DefaultRequestHeaders.AcceptLanguage.Add(new("en-US"));
 		client.DefaultRequestHeaders.AcceptLanguage.Add(new("en"));
-		client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36");
+		client.DefaultRequestHeaders.UserAgent.ParseAdd(
+			"Mozilla/5.0 (X11; Linux x86_64) "
+			+ "AppleWebKit/537.36 (KHTML, like Gecko) "
+			+ "Chrome/110.0.0.0 Safari/537.36");
 
 		GenAndQueue(client, nextRequest).Wait();
 	}
@@ -66,7 +69,9 @@ public class Scraper
 
 				finishedTask = await Task.WhenAny(handlers);
 				await finishedTask;
-				List<Task> extraHandlers = (finishedTask as Task<List<Task>>).Result;
+				List<Task> extraHandlers = (finishedTask as Task<List<Task>>)
+					.Result;
+
 				handlers.AddRange(extraHandlers);
 				handlers.Remove(finishedTask);
 			}
@@ -84,25 +89,37 @@ public class Scraper
 		}
 	}
 
-	private async Task<List<Task>> HandleRequest(HttpClient client, Request request)
+	private async Task<List<Task>> HandleRequest(
+		HttpClient client,
+		Request request)
 	{
 		string url = request.url;
 		if(!url.StartsWith("http"))
 		{
-			string sep = url.StartsWith('/') || url.StartsWith('?') || url.StartsWith('&')
-				? ""
-				: "/";
+			bool condition = url.StartsWith('/')
+				|| url.StartsWith('?')
+				|| url.StartsWith('&');
+
+			string sep = condition ? "" : "/";
 			url = $"{baseUrl}{sep}{request.url}";
 		}
 
-		HttpMethod method = request.content == null ? HttpMethod.Get : HttpMethod.Post;
+		HttpMethod method = request.content == null
+			? HttpMethod.Get
+			: HttpMethod.Post;
+
 		HttpRequestMessage message = new(method, url);
 
 		if(method == HttpMethod.Post)
 		{
 			message.Content = new ByteArrayContent(request.content);
-			message.Content.Headers.Add("Content-Length", request.content.Length.ToString());
-			message.Content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+			message.Content.Headers.Add(
+				"Content-Length",
+				request.content.Length.ToString());
+
+			message.Content.Headers.Add(
+				"Content-Type",
+				"application/x-www-form-urlencoded");
 		}
 
 		if(request.cookies != null && request.cookies.Keys.Count > 0)
@@ -182,11 +199,11 @@ public class Scraper
 		done = true;
 	}
 
-	private static HttpRequestMessage CloneHttpRequestMessage(HttpRequestMessage req)
+	private static HttpRequestMessage CloneHttpRequestMessage(
+		HttpRequestMessage req)
 	{
-		HttpRequestMessage clone = new HttpRequestMessage(req.Method, req.RequestUri);
+		HttpRequestMessage clone = new(req.Method, req.RequestUri);
 
-		// Copy the request's content (via a MemoryStream) into the cloned object
 		MemoryStream ms = new();
 		if (req.Content != null)
 		{
@@ -194,7 +211,6 @@ public class Scraper
 			ms.Position = 0;
 			clone.Content = new StreamContent(ms);
 
-			// Copy the content headers
 			foreach (var h in req.Content.Headers)
 				clone.Content.Headers.Add(h.Key, h.Value);
 		}
@@ -202,7 +218,7 @@ public class Scraper
 		clone.Version = req.Version;
 
 		foreach (KeyValuePair<string, object> option in req.Options)
-			clone.Options.Set(new HttpRequestOptionsKey<object>(option.Key), option.Value);
+			clone.Options.Set(new(option.Key), option.Value);
 
 		foreach (KeyValuePair<string, IEnumerable<string>> header in req.Headers)
 			clone.Headers.TryAddWithoutValidation(header.Key, header.Value);

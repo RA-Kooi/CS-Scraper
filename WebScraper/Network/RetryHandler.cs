@@ -24,14 +24,17 @@ public class RetryHandler : DelegatingHandler
 		return await Policy
 			.Handle<HttpRequestException>()
 			.Or<TaskCanceledException>()
-			.OrResult<HttpResponseMessage>(x => Settings.retryCodes.Contains((int)x.StatusCode))
+			.OrResult<HttpResponseMessage>(
+				x => Settings.retryCodes.Contains((int)x.StatusCode)
+			)
 			.WaitAndRetryForeverAsync(
 				retryAttempt =>
 				{
 					int waitTime = Settings.initialErrorWaitTime;
-					waitTime += (Settings.errorWaitStep * (retryAttempt - 1));
+					waitTime += Settings.errorWaitStep * (retryAttempt - 1);
 
-					return TimeSpan.FromSeconds(Math.Min(Settings.maxErrorWaitTime, waitTime));
+					return TimeSpan.FromSeconds(
+						Math.Min(Settings.maxErrorWaitTime, waitTime));
 				})
 			.ExecuteAsync(() => base.SendAsync(request, cancellationToken));
 	}

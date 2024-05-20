@@ -51,6 +51,7 @@ public class Request
 
 	private void DefaultErrorHandler(string url, HttpResponseMessage response)
 	{
-		Console.Error.WriteLine($"Got <{(int)response.StatusCode} ({response.StatusCode.ToString()})> from: {url}");
+		Console.Error.WriteLine(
+			$"Got <{(int)response.StatusCode} ({response.StatusCode})> from: {url}");
 	}
 }
